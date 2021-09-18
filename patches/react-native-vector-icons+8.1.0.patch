@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-vector-icons/RNVectorIconsManager/RNVectorIconsManager.m b/node_modules/react-native-vector-icons/RNVectorIconsManager/RNVectorIconsManager.m
+index 2823543..0c08ee4 100644
+--- a/node_modules/react-native-vector-icons/RNVectorIconsManager/RNVectorIconsManager.m
++++ b/node_modules/react-native-vector-icons/RNVectorIconsManager/RNVectorIconsManager.m
+@@ -69,6 +69,9 @@ RCT_EXPORT_MODULE();
+                                                   withFilePath:(NSString *)filePath
+                                                   withColor:(UIColor *)color
+ {
++    if (!font) {
++        return NO;
++    }
+   if(![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+     // No cached icon exists, we need to create it and persist to disk
+ 

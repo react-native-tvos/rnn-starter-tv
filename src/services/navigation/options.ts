@@ -2,18 +2,19 @@ import { Options, OptionsTopBar } from 'react-native-navigation';
 import { Colors } from 'react-native-ui-lib';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Button, buttons } from './buttons';
+import { Platform } from 'react-native';
 
 const ICON_SIZE = 25;
 
 export const navDefaultOptions = (): Options => {
   return {
     layout: {
-      orientation: ['portrait'],
+      orientation: ['portrait', 'landscape'],
       componentBackgroundColor: Colors.bgColor,
       backgroundColor: Colors.bgColor,
     },
     bottomTabs: {
-      titleDisplayMode: 'alwaysShow',
+      titleDisplayMode: 'showWhenActive',
       backgroundColor: Colors.bgColor,
       hideShadow: true,
       elevation: 0,
@@ -21,6 +22,7 @@ export const navDefaultOptions = (): Options => {
     bottomTab: {
       iconColor: Colors.primary,
       textColor: Colors.primary,
+      fontSize: Platform.isTV && Platform.OS === 'ios' ? 30 : 14,
       selectedIconColor: Colors.primary,
       selectedTextColor: Colors.primary,
     },

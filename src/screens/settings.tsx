@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Linking, ScrollView } from 'react-native';
+import { Alert, Linking, Platform, ScrollView } from 'react-native';
 import { View } from 'react-native-ui-lib';
 import { NavigationFunctionComponent } from 'react-native-navigation';
 import { observer } from 'mobx-react';
@@ -25,7 +25,7 @@ export const Settings: NavigationFunctionComponent = observer(() => {
 
   return (
     <View flex bg-bgColor>
-      <ScrollView contentInsetAdjustmentBehavior="always">
+      <ScrollView contentInsetAdjustmentBehavior={Platform.isTV ? 'automatic' : 'always'}>
         <View padding-m>
           <Section bg title="General">
             <View>

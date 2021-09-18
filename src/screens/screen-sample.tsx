@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { Platform, ScrollView } from 'react-native';
 import { View, Button, Text } from 'react-native-ui-lib';
 import { NavigationFunctionComponent } from 'react-native-navigation';
 import { observer } from 'mobx-react';
@@ -20,7 +20,7 @@ export const Example: NavigationFunctionComponent<ExampleScreenProps> = observer
 
     return (
       <View flex bg-bgColor>
-        <ScrollView contentInsetAdjustmentBehavior="always">
+        <ScrollView contentInsetAdjustmentBehavior={Platform.isTV ? 'automatic' : 'always'}>
           <View padding-m>
             <Section title={t.do('section.navigation.title')}>
               <View>
@@ -48,7 +48,6 @@ export const Example: NavigationFunctionComponent<ExampleScreenProps> = observer
               </Text>
             </Section>
 
-            <Reanimated2 stID="reanimated2" />
             <Button
               marginV-xs
               label={t.do('section.navigation.button.back')}

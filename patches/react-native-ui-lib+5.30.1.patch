@@ -1,0 +1,87 @@
+diff --git a/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/KeyboardTrackingViewTempManager.m b/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/KeyboardTrackingViewTempManager.m
+index 6c591f6..6defafc 100644
+--- a/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/KeyboardTrackingViewTempManager.m
++++ b/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/KeyboardTrackingViewTempManager.m
+@@ -10,7 +10,9 @@
+ #import "ObservingInputAccessoryViewTemp.h"
+ #import "UIResponder+FirstResponderTemp.h"
+ 
++#if !TARGET_OS_TV
+ #import <WebKit/WebKit.h>
++#endif
+ #import <React/RCTScrollView.h>
+ #import <React/RCTBridge.h>
+ #import <React/RCTUIManager.h>
+@@ -130,6 +132,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
+     return subview;
+ }
+ 
++#if !TARGET_OS_TV
+ -(void)_swizzleWebViewInputAccessory:(WKWebView*)webview
+ {
+     UIView* subview;
+@@ -158,6 +161,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
+     object_setClass(subview, _newClass);
+     [subview reloadInputViews];
+ }
++#endif
+ 
+ -(void)layoutSubviews
+ {
+@@ -237,10 +241,12 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
+         {
+             [self setupTextView:(UITextView*)subview];
+         }
++#if !TARGET_OS_TV
+         else if ([subview isKindOfClass:[WKWebView class]])
+         {
+             [self _swizzleWebViewInputAccessory:(WKWebView*)subview];
+         }
++#endif
+     }
+     
+     for (RCTScrollView *scrollView in rctScrollViewsArray)
+@@ -254,7 +260,7 @@ typedef NS_ENUM(NSUInteger, KeyboardTrackingScrollBehavior) {
+     }
+     
+ #if __IPHONE_OS_VERSION_MAX_ALLOWED > __IPHONE_10_3
+-    if (@available(iOS 11.0, *)) {
++    if (@available(iOS 11.0, tvOS 11.0, *)) {
+         if (_scrollViewToManage != nil) {
+             _scrollViewToManage.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+         }
+diff --git a/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/ObservingInputAccessoryViewTemp.m b/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/ObservingInputAccessoryViewTemp.m
+index 1ca52e8..26fe5f8 100644
+--- a/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/ObservingInputAccessoryViewTemp.m
++++ b/node_modules/react-native-ui-lib/lib/ios/reactnativeuilib/keyboardtrackingview/ObservingInputAccessoryViewTemp.m
+@@ -51,12 +51,14 @@
+ 
+ - (void) registerForKeyboardNotifications
+ {
++#if !TARGET_OS_TV
+     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+     [notificationCenter addObserver:self selector:@selector(_keyboardWillShowNotification:) name:UIKeyboardWillShowNotification object:nil];
+     [notificationCenter addObserver:self selector:@selector(_keyboardDidShowNotification:) name:UIKeyboardDidShowNotification object:nil];
+     [notificationCenter addObserver:self selector:@selector(_keyboardWillHideNotification:) name:UIKeyboardWillHideNotification object:nil];
+     [notificationCenter addObserver:self selector:@selector(_keyboardDidHideNotification:) name:UIKeyboardDidHideNotification object:nil];
+     [notificationCenter addObserver:self selector:@selector(_keyboardWillChangeFrameNotification:) name:UIKeyboardWillChangeFrameNotification object:nil];
++#endif
+ }
+ 
+ - (void)willMoveToSuperview:(UIView *)newSuperview
+@@ -153,6 +155,7 @@
+ 
+ - (void)_keyboardWillChangeFrameNotification:(NSNotification*)notification
+ {
++#if !TARGET_OS_TV
+     if(self.window)
+     {
+         return;
+@@ -164,6 +167,7 @@
+     [_delegate ObservingInputAccessoryViewTempDidChangeFrame:self];
+     
+     [self invalidateIntrinsicContentSize];
++#endif
+ }
+ 
+ @end

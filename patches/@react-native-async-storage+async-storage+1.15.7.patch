@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.m b/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.m
+index b25cf86..e29de12 100644
+--- a/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.m
++++ b/node_modules/@react-native-async-storage/async-storage/ios/RNCAsyncStorage.m
+@@ -503,7 +503,7 @@ RCT_EXPORT_MODULE()
+     RCTAssertThread(RCTGetMethodQueue(), @"Must be executed on storage thread");
+ 
+ #if TARGET_OS_TV
+-    RCTLogWarn(
++    RCTLogInfo(
+         @"Persistent storage is not supported on tvOS, your data may be removed at any point.");
+ #endif
+ 

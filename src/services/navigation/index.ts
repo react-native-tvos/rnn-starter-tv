@@ -1,7 +1,7 @@
 import { Constants, Navigation, NavigationConstants, Options } from 'react-native-navigation';
 import { gestureHandlerRootHOC as withGestureHandler } from 'react-native-gesture-handler';
 import merge from 'lodash/merge';
-import pipe from 'lodash/flowright';
+import pipe from 'lodash/flowRight';
 
 import { Screen, screens, screensLayouts } from '../../screens';
 import { withStores } from '../../stores';

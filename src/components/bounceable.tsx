@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewStyle } from 'react-native';
+import { ViewStyle, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -40,30 +40,49 @@ export const Bounceable: React.FC<BouncableProps> = ({
     };
   });
 
+  const pressHandler = async () => {
+    scale.value = withSpring(1, springConfig);
+    if (onPress) runOnJS(onPress)();
+    scale.value = withSpring(activeScale, springConfig);
+  };
+
+  const focusHandler = async () => {
+    scale.value = withSpring(activeScale, springConfig);
+  };
+
+  const blurHandler = async () => {
+    scale.value = withSpring(1, springConfig);
+  };
+
   return (
-    <TapGestureHandler
-      shouldCancelWhenOutside={true}
-      onHandlerStateChange={({ nativeEvent }) => {
-        if (disabled) return;
-        const { state } = nativeEvent;
-
-        if (state === State.BEGAN) {
-          scale.value = withSpring(activeScale, springConfig);
-          return;
-        }
-
-        if (state === State.END) {
-          if (onPress) runOnJS(onPress)();
-          scale.value = withSpring(1, springConfig);
-          return;
-        }
-
-        if (state === State.UNDETERMINED || state === State.FAILED || state === State.CANCELLED) {
-          scale.value = withSpring(1, springConfig);
-          return;
-        }
-      }}>
-      <Animated.View style={[contentContainerStyle, sz]}>{children}</Animated.View>
-    </TapGestureHandler>
+    <TouchableOpacity
+      onPress={() => pressHandler()}
+      onFocus={() => focusHandler()}
+      onBlur={() => blurHandler()}>
+      <TapGestureHandler
+        shouldCancelWhenOutside={true}
+        onHandlerStateChange={({ nativeEvent }) => {
+          if (disabled) return;
+          const { state } = nativeEvent;
+  
+          if (state === State.BEGAN) {
+            scale.value = withSpring(activeScale, springConfig);
+            return;
+          }
+  
+          if (state === State.END) {
+            if (onPress) runOnJS(onPress)();
+            scale.value = withSpring(1, springConfig);
+            return;
+          }
+  
+          if (state === State.UNDETERMINED || state === State.FAILED || state === State.CANCELLED) {
+            scale.value = withSpring(1, springConfig);
+            return;
+          }
+        }}>
+        <Animated.View style={[contentContainerStyle, sz]}>{children}</Animated.View>
+      </TapGestureHandler>
+    </TouchableOpacity>
   );
 };

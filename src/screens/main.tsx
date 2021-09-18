@@ -1,9 +1,17 @@
-import React, { useEffect } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Platform,
+  ScrollView,
+  Alert,
+  TVMenuControl,
+  useTVEventHandler,
+  HWFocusEvent,
+} from 'react-native';
 import { View, Button, Text } from 'react-native-ui-lib';
 import { NavigationFunctionComponent } from 'react-native-navigation';
 import { useNavigationButtonPress } from 'react-native-navigation-hooks/dist';
 import { observer } from 'mobx-react';
+import 'react-native/tvos-types.d';
 
 import { useServices } from '../services';
 import { useStores } from '../stores';
@@ -27,17 +35,31 @@ export const Main: NavigationFunctionComponent = observer(({ componentId }) => {
 
   const start = async () => {
     try {
-      await api.counter.get();
+      await api.counter.get(true); // Change to false to reach out to the real counter API
     } catch (e) {
       Alert.alert('Error', 'There was a problem fetching data :(');
     }
   };
 
+  const [eventType, setEventType] = useState('');
+  useTVEventHandler((evt: any) => {
+    // For now, only do this on Apple TV
+    // (Android TV seems to be having perf issues with setting this state)
+    if (Platform.isTV && Platform.OS === 'ios') {
+      setEventType(evt.eventType);
+    }
+  });
+
   return (
     <View flex bg-bgColor>
-      <ScrollView contentInsetAdjustmentBehavior="always">
+      <ScrollView contentInsetAdjustmentBehavior={Platform.isTV ? 'automatic' : 'always'}>
         <View padding-m>
           <Section title={t.do('section.navigation.title')}>
+            {Platform.isTV && Platform.OS === 'ios' ? (
+              <Text marginB-s text60R textColor>
+                Last TV event: {eventType}
+              </Text>
+            ) : null}
             <Button
               marginV-xs
               label={t.do('section.navigation.button.push')}
@@ -83,6 +105,20 @@ export const Main: NavigationFunctionComponent = observer(({ componentId }) => {
               </Text>
               <Button margin-xs label="-" onPress={counter.dec} />
               <Button margin-xs label="+" onPress={counter.inc} />
+              {Platform.isTV ? (
+                <Button
+                  margin-xs
+                  label="Enable menu key"
+                  onPress={() => TVMenuControl.enableTVMenuKey()}
+                />
+              ) : null}
+              {Platform.isTV ? (
+                <Button
+                  margin-xs
+                  label="Disable menu key"
+                  onPress={() => TVMenuControl.disableTVMenuKey()}
+                />
+              ) : null}
               <Button margin-xs label="reset" onPress={counter.reset} link />
             </View>
           </Section>

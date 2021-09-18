@@ -1,0 +1,824 @@
+diff --git a/node_modules/react-native-navigation/ReactNativeNavigation.podspec b/node_modules/react-native-navigation/ReactNativeNavigation.podspec
+index 99d10f1..888fe87 100644
+--- a/node_modules/react-native-navigation/ReactNativeNavigation.podspec
++++ b/node_modules/react-native-navigation/ReactNativeNavigation.podspec
+@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
+   s.authors      = "Wix.com"
+   s.homepage     = package['homepage']
+   s.license      = package['license']
+-  s.platform     = :ios, "11.0"
++  s.platforms    = { :ios => "12.0", :tvos => "12.0" }
+ 
+   s.module_name  = 'ReactNativeNavigation'
+   s.default_subspec = 'Core'
+diff --git a/node_modules/react-native-navigation/lib/ios/BottomTabsBasePresenter.m b/node_modules/react-native-navigation/lib/ios/BottomTabsBasePresenter.m
+index 75aa424..b95f342 100644
+--- a/node_modules/react-native-navigation/lib/ios/BottomTabsBasePresenter.m
++++ b/node_modules/react-native-navigation/lib/ios/BottomTabsBasePresenter.m
+@@ -29,8 +29,10 @@
+     [self applyBackgroundColor:[withDefault.bottomTabs.backgroundColor withDefault:nil]
+                    translucent:[withDefault.bottomTabs.translucent withDefault:NO]];
+     [bottomTabs setTabBarHideShadow:[withDefault.bottomTabs.hideShadow withDefault:NO]];
++#if !TARGET_OS_TV
+     [bottomTabs setTabBarStyle:[RCTConvert UIBarStyle:[withDefault.bottomTabs.barStyle
+                                                           withDefault:@"default"]]];
++#endif
+     [self applyTabBarBorder:withDefault.bottomTabs];
+     [self applyTabBarShadow:withDefault.bottomTabs.shadow];
+ }
+@@ -59,9 +61,11 @@
+         [self setTabBarBackgroundColor:mergeOptions.bottomTabs.backgroundColor.get];
+     }
+ 
++#if !TARGET_OS_TV
+     if (mergeOptions.bottomTabs.barStyle.hasValue) {
+         [bottomTabs setTabBarStyle:[RCTConvert UIBarStyle:mergeOptions.bottomTabs.barStyle.get]];
+     }
++#endif
+ 
+     if (mergeOptions.bottomTabs.translucent.hasValue) {
+         [bottomTabs setTabBarTranslucent:mergeOptions.bottomTabs.translucent.get];
+diff --git a/node_modules/react-native-navigation/lib/ios/Constants.m b/node_modules/react-native-navigation/lib/ios/Constants.m
+index c798bd5..a71f885 100644
+--- a/node_modules/react-native-navigation/lib/ios/Constants.m
++++ b/node_modules/react-native-navigation/lib/ios/Constants.m
+@@ -16,7 +16,11 @@
+ }
+ 
+ + (CGFloat)statusBarHeight {
++#if TARGET_OS_TV
++    return 0.0;
++#else
+     return [UIApplication sharedApplication].statusBarFrame.size.height;
++#endif
+ }
+ 
+ + (CGFloat)bottomTabsHeight {
+diff --git a/node_modules/react-native-navigation/lib/ios/HMSegmentedControl.m b/node_modules/react-native-navigation/lib/ios/HMSegmentedControl.m
+index fb07b99..ce9a2fa 100644
+--- a/node_modules/react-native-navigation/lib/ios/HMSegmentedControl.m
++++ b/node_modules/react-native-navigation/lib/ios/HMSegmentedControl.m
+@@ -131,7 +131,9 @@
+ 
+ - (void)commonInit {
+     self.scrollView = [[HMScrollView alloc] init];
++#if !TARGET_OS_TV
+     self.scrollView.scrollsToTop = NO;
++#endif
+     self.scrollView.showsVerticalScrollIndicator = NO;
+     self.scrollView.showsHorizontalScrollIndicator = NO;
+     [self addSubview:self.scrollView];
+diff --git a/node_modules/react-native-navigation/lib/ios/RCTHelpers.m b/node_modules/react-native-navigation/lib/ios/RCTHelpers.m
+index 76ba1d9..88bcf51 100644
+--- a/node_modules/react-native-navigation/lib/ios/RCTHelpers.m
++++ b/node_modules/react-native-navigation/lib/ios/RCTHelpers.m
+@@ -155,9 +155,14 @@
+ 
+ + (NSMutableDictionary *)textAttributesFromDictionary:(NSDictionary *)dictionary
+                                            withPrefix:(NSString *)prefix {
++    CGFloat fontSize = 36.0;
++    #if !TARGET_OS_TV
++    fontSize = (CGFloat)[UIFont systemFontSize];
++    #endif
++
+     return [self textAttributesFromDictionary:dictionary
+                                    withPrefix:prefix
+-                                     baseFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
++                                     baseFont:[UIFont systemFontOfSize:fontSize]];
+ }
+ 
+ + (NSString *)getTimestampString {
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.h b/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.h
+index 400a55e..46831d0 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.h
++++ b/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.h
+@@ -44,9 +44,11 @@ typedef void (^RNNReactViewReadyCompletionBlock)(void);
+ 
+ - (void)willMoveToParentViewController:(UIViewController *)parent;
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)getStatusBarStyle;
+ 
+ - (UIInterfaceOrientationMask)getOrientation;
++#endif
+ 
+ - (BOOL)getStatusBarVisibility;
+ 
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.m b/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.m
+index 54ccea8..4aca99f 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNBasePresenter.m
+@@ -86,6 +86,7 @@
+             withDefault.window.backgroundColor.get;
+     }
+ 
++#if !TARGET_OS_TV
+     if (mergeOptions.statusBar.visible.hasValue) {
+         [self.boundViewController setNeedsStatusBarAppearanceUpdate];
+     }
+@@ -95,6 +96,7 @@
+         _prefersHomeIndicatorAutoHidden = mergeOptions.layout.autoHideHomeIndicator.get;
+         [self.boundViewController setNeedsUpdateOfHomeIndicatorAutoHidden];
+     }
++#endif
+ }
+ 
+ - (void)renderComponents:(RNNNavigationOptions *)options
+@@ -108,6 +110,7 @@
+ - (void)viewDidLayoutSubviews {
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)getStatusBarStyle {
+     RNNStatusBarOptions *statusBarOptions = [self resolveStatusBarOptions];
+     NSString *statusBarStyle = [statusBarOptions.style withDefault:@"default"];
+@@ -120,6 +123,7 @@
+     }
+     return UIStatusBarStyleDefault;
+ }
++#endif
+ 
+ - (BOOL)getStatusBarVisibility {
+     RNNStatusBarOptions *statusBarOptions = [self resolveStatusBarOptions];
+@@ -142,10 +146,12 @@
+     return self.boundViewController.getCurrentChild.navigationItem;
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIInterfaceOrientationMask)getOrientation {
+     return [self.boundViewController.resolveOptions withDefault:self.defaultOptions]
+         .layout.supportedOrientations;
+ }
++#endif
+ 
+ - (BOOL)hidesBottomBarWhenPushed {
+     RNNNavigationOptions *withDefault =
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.h b/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.h
+index 0f0ebe1..39a6f1a 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.h
++++ b/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.h
+@@ -5,6 +5,9 @@
+ #import "RNNEventEmitter.h"
+ #import "UIViewController+LayoutProtocol.h"
+ #import <UIKit/UIKit.h>
++#if TARGET_OS_TV
++@class RCTTVRemoteHandler;
++#endif
+ 
+ @interface RNNBottomTabsController
+     : UITabBarController <RNNLayoutProtocol, UITabBarControllerDelegate>
+@@ -30,4 +33,8 @@
+ 
+ @property(nonatomic, strong) NSArray *pendingChildViewControllers;
+ 
++#if TARGET_OS_TV
++@property(nonatomic, strong) RCTTVRemoteHandler *tvRemoteHandler;
++#endif
++
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.m b/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.m
+index 0472198..add1778 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNBottomTabsController.m
+@@ -1,5 +1,9 @@
+ #import "RNNBottomTabsController.h"
+ #import "UITabBarController+RNNUtils.h"
++#if TARGET_OS_TV
++#import <React/RCTTVRemoteHandler.h>
++#endif
++
+ 
+ @interface RNNBottomTabsController ()
+ @property(nonatomic, strong) BottomTabPresenter *bottomTabPresenter;
+@@ -37,8 +41,9 @@
+                            presenter:presenter
+                         eventEmitter:eventEmitter
+                 childViewControllers:childViewControllers];
+-    if (@available(iOS 13.0, *)) {
++    if (@available(iOS 13.0, tvOS 13.0, *)) {
+         self.tabBar.standardAppearance = [UITabBarAppearance new];
++        
+     }
+ 
+     self.longPressRecognizer =
+@@ -49,10 +54,21 @@
+     return self;
+ }
+ 
++- (void)dealloc
++{
++#if TARGET_OS_TV
++    self.tvRemoteHandler = nil;
++#endif
++}
++
+ - (void)viewWillAppear:(BOOL)animated {
+     [super viewWillAppear:animated];
+     _viewWillAppearOnce = YES;
+     [self loadChildren:self.pendingChildViewControllers];
++#if TARGET_OS_TV
++    self.tvRemoteHandler = [[RCTTVRemoteHandler alloc] initWithView:self.view];
++#endif
++
+ }
+ 
+ - (void)onChildAddToParent:(UIViewController *)child options:(RNNNavigationOptions *)options {
+@@ -188,6 +204,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -203,5 +220,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNComponentPresenter.m b/node_modules/react-native-navigation/lib/ios/RNNComponentPresenter.m
+index fc5c18f..6d2debe 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNComponentPresenter.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNComponentPresenter.m
+@@ -59,10 +59,13 @@
+     [viewController
+         setInterceptTouchOutside:[withDefault.overlay.interceptTouchOutside withDefault:YES]];
+ 
++#if !TARGET_OS_TV
+     if (@available(iOS 13.0, *)) {
+         [viewController setBackgroundColor:[withDefault.layout.componentBackgroundColor
+                                                withDefault:UIColor.systemBackgroundColor]];
+-    } else {
++    } else
++#endif
++    {
+         [viewController setBackgroundColor:[withDefault.layout.componentBackgroundColor
+                                                withDefault:viewController.view.backgroundColor]];
+     }
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.h b/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.h
+index 84ee3eb..ae93219 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.h
++++ b/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.h
+@@ -1,5 +1,12 @@
+ #import "RNNReactView.h"
++#if TARGET_OS_TV
++@class RCTTVRemoteHandler;
++#endif
+ 
+ @interface RNNComponentRootView : RNNReactView
+ 
++#if TARGET_OS_TV
++@property(nonatomic, strong) RCTTVRemoteHandler *tvRemoteHandler;
++#endif
++
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.m b/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.m
+index 768c9d5..0fb404c 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNComponentRootView.m
+@@ -1,4 +1,7 @@
+ #import "RNNComponentRootView.h"
++#if TARGET_OS_TV
++#import <React/RCTTVRemoteHandler.h>
++#endif
+ 
+ @implementation RNNComponentRootView
+ 
+@@ -13,6 +16,11 @@
+                     eventEmitter:eventEmitter
+              reactViewReadyBlock:reactViewReadyBlock];
+     [bridge.uiManager setAvailableSize:UIScreen.mainScreen.bounds.size forRootView:self];
++    
++#if TARGET_OS_TV
++    self.tvRemoteHandler = [[RCTTVRemoteHandler alloc] initWithView:self];
++#endif
++
+     return self;
+ }
+ 
+@@ -20,4 +28,11 @@
+     return ComponentTypeScreen;
+ }
+ 
++- (void)dealloc
++{
++#if TARGET_OS_TV
++    self.tvRemoteHandler = nil;
++#endif
++}
++
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNComponentViewController.m b/node_modules/react-native-navigation/lib/ios/RNNComponentViewController.m
+index ea592a9..f8562b9 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNComponentViewController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNComponentViewController.m
+@@ -228,6 +228,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -243,6 +244,7 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ - (BOOL)prefersHomeIndicatorAutoHidden {
+     return [self.presenter prefersHomeIndicatorAutoHidden];
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNConvert.m b/node_modules/react-native-navigation/lib/ios/RNNConvert.m
+index 873042d..294a82f 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNConvert.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNConvert.m
+@@ -10,6 +10,29 @@
+     }
+ }
+ 
++#if TARGET_OS_TV
++RCT_ENUM_CONVERTER(UIModalTransitionStyle, (@{
++                       @"coverVertical" : @(UIModalTransitionStyleCoverVertical),
++                       @"flipHorizontal" : @([RNNConvert defaultModalPresentationStyle]),
++                       @"crossDissolve" : @(UIModalTransitionStyleCrossDissolve),
++                       @"partialCurl" : @([RNNConvert defaultModalPresentationStyle])
++                   }),
++                   UIModalTransitionStyleCoverVertical, integerValue)
++
++RCT_ENUM_CONVERTER(UIModalPresentationStyle, (@{
++                       @"fullScreen" : @(UIModalPresentationFullScreen),
++                       @"pageSheet" : @([RNNConvert defaultModalPresentationStyle]),
++                       @"formSheet" : @([RNNConvert defaultModalPresentationStyle]),
++                       @"currentContext" : @(UIModalPresentationCurrentContext),
++                       @"custom" : @(UIModalPresentationCustom),
++                       @"overFullScreen" : @(UIModalPresentationOverFullScreen),
++                       @"overCurrentContext" : @(UIModalPresentationOverCurrentContext),
++                       @"popover" : @([RNNConvert defaultModalPresentationStyle]),
++                       @"none" : @(UIModalPresentationNone),
++                       @"default" : @([RNNConvert defaultModalPresentationStyle])
++                   }),
++                   UIModalPresentationFullScreen, integerValue)
++#else
+ RCT_ENUM_CONVERTER(UIModalTransitionStyle, (@{
+                        @"coverVertical" : @(UIModalTransitionStyleCoverVertical),
+                        @"flipHorizontal" : @(UIModalTransitionStyleFlipHorizontal),
+@@ -31,5 +54,6 @@ RCT_ENUM_CONVERTER(UIModalPresentationStyle, (@{
+                        @"default" : @([RNNConvert defaultModalPresentationStyle])
+                    }),
+                    UIModalPresentationFullScreen, integerValue)
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNExternalViewController.m b/node_modules/react-native-navigation/lib/ios/RNNExternalViewController.m
+index a338cc5..e7e04a9 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNExternalViewController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNExternalViewController.m
+@@ -67,6 +67,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -82,5 +83,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.h b/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.h
+index e421fe2..8c6e473 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.h
++++ b/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.h
+@@ -8,6 +8,8 @@
+ @property(nonatomic, strong) id orientation;
+ @property(nonatomic, strong) Bool *autoHideHomeIndicator;
+ 
++#if !TARGET_OS_TV
+ - (UIInterfaceOrientationMask)supportedOrientations;
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.m b/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.m
+index 3e09f88..8338298 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNLayoutOptions.m
+@@ -27,6 +27,7 @@
+         self.autoHideHomeIndicator = options.autoHideHomeIndicator;
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIInterfaceOrientationMask)supportedOrientations {
+     NSArray *orientationsArray = [self.orientation isKindOfClass:[NSString class]]
+                                      ? @[ self.orientation ]
+@@ -58,5 +59,6 @@
+ 
+     return supportedOrientationsMask;
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNReactView.m b/node_modules/react-native-navigation/lib/ios/RNNReactView.m
+index 5002ef2..3817259 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNReactView.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNReactView.m
+@@ -33,7 +33,7 @@
+         _reactViewReadyBlock();
+         _reactViewReadyBlock = nil;
+     }
+-    [[NSNotificationCenter defaultCenter] removeObserver:self];
++   // [[NSNotificationCenter defaultCenter] removeObserver:self];
+ }
+ 
+ - (void)componentWillAppear {
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNSideMenuChildVC.m b/node_modules/react-native-navigation/lib/ios/RNNSideMenuChildVC.m
+index a276fbd..f059b0c 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNSideMenuChildVC.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNSideMenuChildVC.m
+@@ -68,6 +68,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -83,5 +84,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNSideMenuController.m b/node_modules/react-native-navigation/lib/ios/RNNSideMenuController.m
+index 8df96b2..a7e4914 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNSideMenuController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNSideMenuController.m
+@@ -174,6 +174,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -189,5 +190,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNSplashScreen.m b/node_modules/react-native-navigation/lib/ios/RNNSplashScreen.m
+index 0bc235f..904ead1 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNSplashScreen.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNSplashScreen.m
+@@ -9,6 +9,8 @@
+     CGFloat screenScale = [UIScreen mainScreen].scale;
+     UIViewController *viewController = nil;
+ 
++#if !TARGET_OS_TV
++
+     NSString *launchStoryBoard =
+         [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UILaunchStoryboardName"];
+     if (launchStoryBoard != nil) { // load the splash from the storyboard that's defined in the
+@@ -79,7 +81,10 @@
+             viewController.view = [[UIImageView alloc] initWithImage:image];
+         }
+     }
+-
++#endif
++    if (viewController == nil) {
++        viewController = [[RNNSplashScreen alloc] init];
++    }
+     if (viewController != nil) {
+         id<UIApplicationDelegate> appDelegate = [UIApplication sharedApplication].delegate;
+         appDelegate.window.rootViewController = viewController;
+@@ -87,6 +92,7 @@
+     }
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     NSString *styleString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIStatusBarStyle"];
+ 
+@@ -103,5 +109,6 @@
+ - (BOOL)prefersStatusBarHidden {
+     return [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIStatusBarHidden"] boolValue];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNSplitViewController.m b/node_modules/react-native-navigation/lib/ios/RNNSplitViewController.m
+index d0dca93..79303b8 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNSplitViewController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNSplitViewController.m
+@@ -19,6 +19,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -34,5 +35,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNStackController.h b/node_modules/react-native-navigation/lib/ios/RNNStackController.h
+index c54c7b5..1e97aaf 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNStackController.h
++++ b/node_modules/react-native-navigation/lib/ios/RNNStackController.h
+@@ -4,6 +4,7 @@
+ #import "UIViewController+LayoutProtocol.h"
+ #import <UIKit/UIKit.h>
+ 
++
+ @interface RNNStackController : UINavigationController <RNNLayoutProtocol, UINavigationBarDelegate>
+ 
+ @property(nonatomic, retain) RNNStackPresenter *presenter;
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNStackController.m b/node_modules/react-native-navigation/lib/ios/RNNStackController.m
+index 28f2cc4..d526c91 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNStackController.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNStackController.m
+@@ -24,7 +24,9 @@
+                 childViewControllers:childViewControllers];
+     _stackDelegate = [[StackControllerDelegate alloc] initWithEventEmitter:self.eventEmitter];
+     self.delegate = _stackDelegate;
++#if !TARGET_OS_TV
+     self.navigationBar.prefersLargeTitles = YES;
++#endif
+     return self;
+ }
+ 
+@@ -77,6 +79,7 @@
+     [self.presenter willMoveToParentViewController:parent];
+ }
+ 
++#if !TARGET_OS_TV
+ - (UIStatusBarStyle)preferredStatusBarStyle {
+     return [self.presenter getStatusBarStyle];
+ }
+@@ -92,5 +95,6 @@
+ - (BOOL)hidesBottomBarWhenPushed {
+     return [self.presenter hidesBottomBarWhenPushed];
+ }
++#endif
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/RNNStackPresenter.m b/node_modules/react-native-navigation/lib/ios/RNNStackPresenter.m
+index 8cc0ddf..43d99ae 100644
+--- a/node_modules/react-native-navigation/lib/ios/RNNStackPresenter.m
++++ b/node_modules/react-native-navigation/lib/ios/RNNStackPresenter.m
+@@ -32,8 +32,10 @@
+     _topBarPresenter =
+         [TopBarPresenterCreator createWithBoundedNavigationController:self.stackController];
+     _interactivePopGestureDelegate.navigationController = boundViewController;
++#if !TARGET_OS_TV
+     _interactivePopGestureDelegate.originalDelegate =
+         boundViewController.interactivePopGestureRecognizer.delegate;
++#endif
+ }
+ 
+ - (void)componentWillAppear {
+@@ -65,10 +67,12 @@
+     RNNNavigationOptions *withDefault = [options withDefault:[self defaultOptions]];
+ 
+     [_interactivePopGestureDelegate setEnabled:[withDefault.popGesture withDefault:YES]];
++#if !TARGET_OS_TV
+     stack.interactivePopGestureRecognizer.delegate = _interactivePopGestureDelegate;
+ 
+     [stack
+         setBarStyle:[RCTConvert UIBarStyle:[withDefault.topBar.barStyle withDefault:@"default"]]];
++#endif
+     [stack setRootBackgroundImage:[withDefault.rootBackgroundImage withDefault:nil]];
+     [stack setNavigationBarTestId:[withDefault.topBar.testID withDefault:nil]];
+     [stack setNavigationBarVisible:[withDefault.topBar.visible withDefault:YES]
+@@ -122,7 +126,9 @@
+     }
+ 
+     if (mergeOptions.topBar.barStyle.hasValue) {
++#if !TARGET_OS_TV
+         [stack setBarStyle:[RCTConvert UIBarStyle:mergeOptions.topBar.barStyle.get]];
++#endif
+     }
+ 
+     if (mergeOptions.topBar.background.clipToBounds.hasValue) {
+diff --git a/node_modules/react-native-navigation/lib/ios/TopBarPresenter.m b/node_modules/react-native-navigation/lib/ios/TopBarPresenter.m
+index 20af99d..f13dee4 100644
+--- a/node_modules/react-native-navigation/lib/ios/TopBarPresenter.m
++++ b/node_modules/react-native-navigation/lib/ios/TopBarPresenter.m
+@@ -66,8 +66,10 @@
+ }
+ 
+ - (void)setBackIndicatorImage:(UIImage *)image withColor:(UIColor *)color {
++#if !TARGET_OS_TV
+     [self.navigationController.navigationBar setBackIndicatorImage:image];
+     [self.navigationController.navigationBar setBackIndicatorTransitionMaskImage:image];
++#endif
+ }
+ 
+ - (void)setBackgroundColor:(UIColor *)backgroundColor {
+@@ -116,6 +118,7 @@
+ }
+ 
+ - (void)setLargeTitleAttributes:(RNNLargeTitleOptions *)largeTitleOptions {
++#if !TARGET_OS_TV
+     NSString *fontFamily = [largeTitleOptions.fontFamily withDefault:nil];
+     NSString *fontWeight = [largeTitleOptions.fontWeight withDefault:nil];
+     NSNumber *fontSize = [largeTitleOptions.fontSize withDefault:nil];
+@@ -127,6 +130,7 @@
+                     fontSize:fontSize
+                   fontWeight:fontWeight
+                        color:fontColor];
++#endif
+ }
+ 
+ - (void)componentDidAppear {
+@@ -189,6 +193,7 @@
+                                 forState:UIControlStateHighlighted];
+     }
+ 
++#if !TARGET_OS_TV
+ #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
+     if (@available(iOS 14.0, *)) {
+         if (backButtonOptions.displayMode.hasValue) {
+@@ -203,6 +208,7 @@
+ #else
+     previousNavigationItem.backBarButtonItem = backItem;
+ #endif
++#endif
+ }
+ 
+ - (UIViewController *)previousViewControllerInStack {
+diff --git a/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.h b/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.h
+index 0ff0267..83b257a 100644
+--- a/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.h
++++ b/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.h
+@@ -10,7 +10,9 @@
+ 
+ - (void)hideBarsOnScroll:(BOOL)hideOnScroll;
+ 
++#if !TARGET_OS_TV
+ - (void)setBarStyle:(UIBarStyle)barStyle;
++#endif
+ 
+ - (void)setNavigationBarBlur:(BOOL)blur;
+ 
+diff --git a/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.m b/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.m
+index 6035491..64cb0d9 100644
+--- a/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.m
++++ b/node_modules/react-native-navigation/lib/ios/UINavigationController+RNNOptions.m
+@@ -27,14 +27,19 @@ const NSInteger BLUR_TOPBAR_TAG = 78264802;
+ }
+ 
+ - (void)hideBarsOnScroll:(BOOL)hideOnScroll {
++#if !TARGET_OS_TV
+     self.hidesBarsOnSwipe = hideOnScroll;
++#endif
+ }
+ 
++#if !TARGET_OS_TV
+ - (void)setBarStyle:(UIBarStyle)barStyle {
+     self.navigationBar.barStyle = barStyle;
+ }
++#endif
+ 
+ - (void)setNavigationBarBlur:(BOOL)blur {
++#if !TARGET_OS_TV
+     if (blur && ![self.navigationBar viewWithTag:BLUR_TOPBAR_TAG]) {
+         [self.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+         self.navigationBar.shadowImage = [UIImage new];
+@@ -56,6 +61,7 @@ const NSInteger BLUR_TOPBAR_TAG = 78264802;
+             [blur removeFromSuperview];
+         }
+     }
++#endif
+ }
+ 
+ - (void)setNavigationBarClipsToBounds:(BOOL)clipsToBounds {
+diff --git a/node_modules/react-native-navigation/lib/ios/UISplitViewController+RNNOptions.m b/node_modules/react-native-navigation/lib/ios/UISplitViewController+RNNOptions.m
+index 8eda7d5..142fd45 100644
+--- a/node_modules/react-native-navigation/lib/ios/UISplitViewController+RNNOptions.m
++++ b/node_modules/react-native-navigation/lib/ios/UISplitViewController+RNNOptions.m
+@@ -36,11 +36,13 @@
+ }
+ 
+ - (void)rnn_setPrimaryBackgroundStyle:(NSString *)style {
++#if !TARGET_OS_TV
+     if (@available(iOS 13.0, *)) {
+         if ([style isEqualToString:@"sidebar"]) {
+             [self setPrimaryBackgroundStyle:UISplitViewControllerBackgroundStyleSidebar];
+         }
+     }
++#endif
+ }
+ 
+ @end
+diff --git a/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.h b/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.h
+index 806a647..e1ea3e6 100644
+--- a/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.h
++++ b/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.h
+@@ -8,7 +8,9 @@
+ 
+ - (void)setTabBarTestID:(NSString *)testID;
+ 
++#if !TARGET_OS_TV
+ - (void)setTabBarStyle:(UIBarStyle)barStyle;
++#endif
+ 
+ - (void)setTabBarTranslucent:(BOOL)translucent;
+ 
+diff --git a/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.m b/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.m
+index 265841c..78c378b 100644
+--- a/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.m
++++ b/node_modules/react-native-navigation/lib/ios/UITabBarController+RNNOptions.m
+@@ -16,9 +16,11 @@
+     self.tabBar.accessibilityIdentifier = testID;
+ }
+ 
++#if !TARGET_OS_TV
+ - (void)setTabBarStyle:(UIBarStyle)barStyle {
+     self.tabBar.barStyle = barStyle;
+ }
++#endif
+ 
+ - (void)setTabBarTranslucent:(BOOL)translucent {
+     self.tabBar.translucent = translucent;
+diff --git a/node_modules/react-native-navigation/lib/ios/UIViewController+RNNOptions.m b/node_modules/react-native-navigation/lib/ios/UIViewController+RNNOptions.m
+index fc670ad..3202b55 100644
+--- a/node_modules/react-native-navigation/lib/ios/UIViewController+RNNOptions.m
++++ b/node_modules/react-native-navigation/lib/ios/UIViewController+RNNOptions.m
+@@ -31,6 +31,7 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
+                          backgroundColor:(nullable UIColor *)backgroundColor
+                                tintColor:(nullable UIColor *)tintColor
+                               cancelText:(NSString *)cancelText {
++#if !TARGET_OS_TV
+     if (!self.navigationItem.searchController) {
+         UISearchController *search =
+             [[UISearchController alloc] initWithSearchResultsController:nil];
+@@ -66,16 +67,21 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
+         // be the root most view controller
+         self.definesPresentationContext = YES;
+     }
++#endif
+ }
+ 
+ - (void)setSearchBarHiddenWhenScrolling:(BOOL)searchBarHidden {
++#if !TARGET_OS_TV
+     self.navigationItem.hidesSearchBarWhenScrolling = searchBarHidden;
++#endif
+ }
+ 
+ - (void)setSearchBarVisible:(BOOL)visible {
++#if !TARGET_OS_TV
+     if (!visible) {
+         self.navigationItem.searchController = nil;
+     }
++#endif
+ }
+ 
+ - (void)setNavigationItemTitle:(NSString *)title {
+@@ -115,14 +121,17 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
+ }
+ 
+ - (void)setTopBarPrefersLargeTitle:(BOOL)prefersLargeTitle {
++#if !TARGET_OS_TV
+     if (prefersLargeTitle) {
+         self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAlways;
+     } else {
+         self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+     }
++#endif
+ }
+ 
+ - (void)setStatusBarBlur:(BOOL)blur {
++#if !TARGET_OS_TV
+     UIView *curBlurView = [self.view viewWithTag:BLUR_STATUS_TAG];
+     if (blur) {
+         if (!curBlurView) {
+@@ -137,6 +146,7 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
+             [curBlurView removeFromSuperview];
+         }
+     }
++#endif
+ }
+ 
+ - (void)setBackgroundColor:(UIColor *)backgroundColor {
+@@ -144,7 +154,9 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
+ }
+ 
+ - (void)setBackButtonVisible:(BOOL)visible {
++#if !TARGET_OS_TV
+     self.navigationItem.hidesBackButton = !visible;
++#endif
+ }
+ 
+ - (CGFloat)statusBarAnimationDuration:(BOOL)animated {
