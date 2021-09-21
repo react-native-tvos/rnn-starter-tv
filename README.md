@@ -4,6 +4,25 @@ This starter is a collection of libraries and approaches from my personal experi
 
 For more information, check out [Why](#why) section.
 
+This branch includes support for Android TV and Apple TV.
+
+- Framework changes:
+  - Use react-native-tvos 0.64.2-4 instead of react-native 0.64.2
+  - Patches for podspecs and Objective-C source in several projects
+- App changes:
+  - tvOS targets in Xcode project
+  - Add tvOS support in Podfile
+  - Orientation should be both portrait and landscape (needed for Android TV)
+  - Make Bounceable component work on TV
+  - Scrollview inset adjustment should not be "always" on TV
+  - For now, use async storage instead of MMKV
+  - TV remote event display on main screen for Apple TV
+  - Local option for simulating counter API calls
+
+
+https://user-images.githubusercontent.com/6577821/134101033-cfd17ca5-55e6-4a53-b25c-7481f35a93d7.mp4
+
+
 ## Getting Started
 
 #### Quick start with [cli-rn](https://github.com/kanzitelli/cli-rn)
@@ -45,6 +64,10 @@ Open XCode or Android Studio to run the project (recommended) or do
 > yarn ios
 > yarn android
 ```
+
+For Android TV, start an Android TV simulator from Android Studio, then execute `yarn android` just as you would for Android phone.
+
+For Apple TV, execute `yarn tvos`.
 
 If you need to rename the app, do the following (based on [react-native-rename](https://github.com/junedomingo/react-native-rename)):
 
